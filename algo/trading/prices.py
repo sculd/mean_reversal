@@ -47,7 +47,7 @@ def fetch_closes_since(exchange, symbols, since_epoch_seconds):
         time_and_values.append(cs)
         columns.append(symbol)
 
-    df = pd.DataFrame(list(zip(*time_and_values)), columns =columns)
+    df = pd.DataFrame(list(zip(*time_and_values)), columns = columns)
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
     df = df.set_index('timestamp')
     return df
@@ -87,6 +87,7 @@ class PriceCache:
             df_recent_prices = self.fetch_closes_since(_exchange_kraken, self.symbols, recent_epoch_seconds + 60)
             if len(df_recent_prices) > 0:
                 self.df_prices = pd.concat([self.df_prices, df_recent_prices])
+                self.df_prices = self.df_prices[max(0, len(self.df_prices) - self.windows_minutes):]
 
         return self.df_prices
 
