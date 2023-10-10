@@ -43,7 +43,7 @@ class TradeManager:
 
 
     def tick(self):
-        print('tick')
+        logging.info('tick')
         df_prices = self.price_cache.get_df_prices()
         price_updated = self.df_prices.index[-1].to_datetime64() == df_prices.index[-1].to_datetime64()
         self.df_prices = df_prices
@@ -58,13 +58,13 @@ class TradeManager:
         get if position changed
         if position changes, execute the position change.
         '''
-        print('on_price_update')
+        logging.info('on_price_update')
         if self.get_if_rebalance():
             self.rebalance_weight()
 
         position_changed = self.get_position_changed()
         if position_changed:
-            print('[on_price_update] position has changed')
+            logging.info('[on_price_update] position has changed')
             pass
 
 
@@ -76,7 +76,7 @@ class TradeManager:
 
 
     def rebalance_weight(self):
-        print('rebalance_weight')
+        logging.info('rebalance_weight')
         _, var_eigen_vecs, wgts = algo.minimal_predictability.calculate.get_var1_wgts_values_transpose(*self.df_prices.values.T)
         self.status.weight = wgts[:,0]
         last_rebalance_epoch_seconds = self.df_prices.index[-1].to_datetime64().astype('int') // 10**9
@@ -86,7 +86,7 @@ class TradeManager:
 
 
     def get_position_changed(self):
-        print('get_position_changed')
+        logging.info('get_position_changed')
         df_features = algo.statarbitrage.bband.add_features(self.df_prices, self.status.weight, self.trading_param.bband_trading_param)
         return df_features.iloc[-1].position_changed
 
