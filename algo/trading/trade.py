@@ -1,14 +1,14 @@
 import pandas as pd, numpy as np
 
 import algo.minimal_predictability.calculate
-import algo.trading.bband
-import algo.trading_live.prices
+import algo.statarbitrage.bband
+import algo.trading.prices
 
 default_fitting_window_minutes = 180
 default_rebalance_period_minutes = 180
 default_bband_window_minutes = 60
 default_max_window = max(default_fitting_window_minutes, default_rebalance_period_minutes, default_bband_window_minutes)
-default_bband_trading_param = algo.trading.bband.TradingParam(default_bband_window_minutes, 2.0)
+default_bband_trading_param = algo.statarbitrage.bband.TradingParam(default_bband_window_minutes, 2.0)
 
 
 class TradingParam:
@@ -26,7 +26,7 @@ class Status:
         self.weight = weight
 
     def init_status():
-        df_prices = algo.trading_live.prices.get_df_prices()
+        df_prices = algo.trading.prices.get_df_prices()
         _, var_eigen_vecs, wgts = algo.minimal_predictability.calculate.get_var1_wgts_values_transpose(*df_prices.values.T)
         status = Status(wgts[:0])
         return status
@@ -35,7 +35,7 @@ class Status:
 class Trading:
     def __init__(self, symbols):
         self.status = Status.init_status()
-        self.price_cache = algo.trading_live.prices.PriceCache(symbols, default_max_window)
+        self.price_cache = algo.trading.prices.PriceCache(symbols, default_max_window)
         self.trading_param = TradingParam.get_default_param()
         self.last_rebalance_epoch_seconds = 0
 
@@ -75,6 +75,6 @@ class Trading:
 
     def get_position_changed(self):
         df_prices = self.price_cache.get_df_prices()
-        df_features = algo.trading.bband.add_features(df_prices, self.status.weight, self.trading_param.bband_trading_param)
+        df_features = algo.statarbitrage.bband.add_features(df_prices, self.status.weight, self.trading_param.bband_trading_param)
         return df_features.iloc[-1].position_changed
 

@@ -59,20 +59,32 @@ def fetch_closes(exchange, symbols, window_minutes):
 
 
 class PriceCache:
-    def __init__(self, symbols, windows_minutes, df_prices=None):
+    def __init__(self, symbols, windows_minutes, df_prices=None, now_epoch_seconds=None):
         self.symbols = symbols
         self.windows_minutes = windows_minutes
         self.df_prices = df_prices
+        self.now_epoch_seconds = now_epoch_seconds
+    
+    def get_now_epoch_seconds(self):
+        if self.now_epoch_seconds is not None:
+            return self.now_epoch_seconds
+        return int(time.time())
+
+    def fetch_closes_since(self, exchange, symbols, since_epoch_seconds):
+        return fetch_closes_since(exchange, symbols, since_epoch_seconds)
+
+    def fetch_closes(self, exchange, symbols, window_minutes):
+        return fetch_closes(exchange, symbols, window_minutes)
 
     def get_df_prices(self):
         if self.df_prices is None or len(self.df_prices) == 0:
-            self.df_prices = fetch_closes(_exchange_kraken, self.symbols, self.windows_minutes)
+            self.df_prices = self.fetch_closes(_exchange_kraken, self.symbols, self.windows_minutes)
 
         recent_epoch_seconds = self.df_prices.index[-1].timestamp()
-        now_minus_one_minute_epoch_seconds = (int(time.time() // 60) - 1) * 60
+        now_minus_one_minute_epoch_seconds = (int(self.get_now_epoch_seconds() // 60) - 1) * 60
 
         if recent_epoch_seconds < now_minus_one_minute_epoch_seconds:
-            df_recent_prices = fetch_closes_since(_exchange_kraken, self.symbols, recent_epoch_seconds + 60)
+            df_recent_prices = self.fetch_closes_since(_exchange_kraken, self.symbols, recent_epoch_seconds + 60)
             if len(df_recent_prices) > 0:
                 self.df_prices = pd.concat([self.df_prices, df_recent_prices])
 

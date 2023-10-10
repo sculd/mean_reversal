@@ -1,8 +1,7 @@
 import unittest
-import sys
 import numpy as np
 
-class ItemTest(unittest.TestCase):
+class EigenDecompositionTest(unittest.TestCase):
 
     def test_eigen_decomposition(self):
         mat = [[1, 2, 0], [2, 1, 0], [0, 0, 4]]
