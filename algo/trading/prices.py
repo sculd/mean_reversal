@@ -48,7 +48,7 @@ def fetch_closes_since(exchange, symbols, since_epoch_seconds):
         columns.append(symbol)
 
     df = pd.DataFrame(list(zip(*time_and_values)), columns = columns)
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms', utc=True)
     df = df.set_index('timestamp')
     return df
 

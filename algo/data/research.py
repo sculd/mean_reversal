@@ -17,11 +17,12 @@ date_str_20230806 = "2023-08-06"
 date_str_20230809 = "2023-08-09"
 date_str_20230831 = "2023-08-31"
 
-df_202209 = pd.read_csv('market_data_binance.by_minute_ALL_2022-09-01T04:00:00Z_2022-09-30T03:59:00Z.csv')
+data_base_dir = 'algo/data'
+df_202209 = pd.read_csv(f'{data_base_dir}/market_data_binance.by_minute_ALL_2022-09-01T04:00:00Z_2022-09-30T03:59:00Z.csv')
 df_202209['time'] = pd.to_datetime(df_202209['timestamp'], unit='s')
 df_close_202209 = df_202209.pivot(index='time', columns='symbol', values='close')
 
-df_202308 = pd.read_csv('market_data_binance.by_minute_ALL_2023-08-01T04:00:00Z_2023-08-31T03:59:00Z.csv')
+df_202308 = pd.read_csv(f'{data_base_dir}/market_data_binance.by_minute_ALL_2023-08-01T04:00:00Z_2023-08-31T03:59:00Z.csv')
 df_202308['time'] = pd.to_datetime(df_202308['timestamp'], unit='s')
 df_close_202308 = df_202308.pivot(index='time', columns='symbol', values='close')
 df_close_20230806_20230809 = df_close_202308[(df_close_202308.index >= date_str_20230806) & (df_close_202308.index < date_str_20230809)]

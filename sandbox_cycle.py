@@ -3,6 +3,7 @@ import logging
 import sys
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s')
 
 
 trade_manager = algo.trading.trade.TradeManager(['BTC/USD', 'ETH/USD', 'LTC/USD'])
