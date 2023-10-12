@@ -51,9 +51,9 @@ class Status:
 
 
 class TradeManager:
-    def __init__(self, symbols, trading_param=None):
+    def __init__(self, symbols, trading_param=None, price_cache=None):
         self.trading_param = trading_param if trading_param is not None else TradingParam.get_default_param(symbols)
-        self.price_cache = algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
+        self.price_cache = price_cache if price_cache is not None else algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
         self.status = Status.init_status(self.price_cache.get_df_prices())
         self.trade_execution = algo.trading.execution.TradeExecution(symbols)
         self.df_prices = self.price_cache.get_df_prices()
@@ -65,7 +65,7 @@ class TradeManager:
         df_prices = self.price_cache.get_df_prices()
         price_updated = self.df_prices.index[-1].to_datetime64() != df_prices.index[-1].to_datetime64()
         if price_updated:
-            logging.info(f'price is updated, previous t: {self.df_prices.index[-1].to_datetime64()}, updated t: {df_prices.index[-1].to_datetime64()}')
+            logging.debug(f'price is updated, previous t: {self.df_prices.index[-1].to_datetime64()}, updated t: {df_prices.index[-1].to_datetime64()}')
             self.df_prices = df_prices
             self.on_price_update()
 
@@ -77,14 +77,14 @@ class TradeManager:
         get if position changed
         if position changes, execute the position change.
         '''
-        logging.info(f'on_price_update:\n{self.df_prices.iloc[-1]}')
+        logging.debug(f'on_price_update:\n{self.df_prices.iloc[-1]}')
         if self.get_if_rebalance():
             self.rebalance_weight()
 
         position_changed = self.get_position_changed()
         if position_changed != 0:
-            logging.info('[on_price_update] position has changed: {position_changed}')
-            self.trade_execution(self.status.weight, position_changed)
+            logging.info(f'[on_price_update] position has changed: {position_changed}')
+            self.trade_execution.execute(self.status.weight, position_changed)
 
 
     def get_if_rebalance(self):
@@ -94,7 +94,7 @@ class TradeManager:
 
     def rebalance_weight(self):
         self.status.rebalance_weight(self.df_prices)
-        logging.debug('rebalanced weight: {self.status.weight}')
+        logging.info(f'rebalanced weight: {self.status.weight}')
 
 
     def get_position_changed(self):

@@ -72,6 +72,13 @@ class BacktestCsvPriceCache:
         epoch_seconds_first = self.get_anchored_epoch_seconds_minutes_before(window_minutes)
         return self.fetch_closes_since(epoch_seconds_first)
 
+    def if_history_all_read(self):
+        return self.history_read_i >= len(self.price_history_epoch_seconds)
+
+    def warmup(self):
+        while self.df_prices is None or (len(self.df_prices) < self.windows_minutes and not self.if_history_all_read()):
+            self.get_df_prices()
+
     def get_df_prices(self):
         if self.df_prices is None:
             self.df_prices = self.fetch_closes(self.windows_minutes)
