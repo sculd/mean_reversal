@@ -14,16 +14,20 @@ default_bband_trading_param = algo.statarbitrage.bband.TradingParam(default_bban
 
 
 class TradingParam:
-    def __init__(self, symbols, fitting_window_minutes, rebalance_period_minutes, bband_trading_param):
+    def __init__(self, symbols, fitting_window_minutes, rebalance_period_minutes, if_evecs, bband_trading_param):
+        '''
+        if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
+        '''   
         self.symbols = symbols
         self.fitting_window_minutes, self.rebalance_period_minutes = fitting_window_minutes, rebalance_period_minutes
+        self.if_evecs = if_evecs
         self.bband_trading_param = bband_trading_param
 
     def get_max_window_minutes(self):
         return max(self.fitting_window_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
 
     def get_default_param(symbols):
-        return TradingParam(symbols, default_fitting_window_minutes, default_rebalance_period_minutes, default_bband_trading_param)
+        return TradingParam(symbols, default_fitting_window_minutes, default_rebalance_period_minutes, True, default_bband_trading_param)
 
 
 class Status:
@@ -31,30 +35,46 @@ class Status:
         self.weight = weight
         self.last_rebalance_epoch_seconds = 0
 
-    def init_status(df_prices):
-        _, var_eigen_vecs, wgts = algo.minimal_predictability.calculate.get_var1_wgts_values_transpose(*df_prices.values.T)
-        status = Status(wgts[:,0])
+    def get_weight(df_prices, if_evecs):
+        '''
+        if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
+        '''   
+        # ValueError
+        try:
+            _, var_eigen_vecs, wgts = algo.minimal_predictability.calculate.get_var1_wgts_values_transpose(*df_prices.values.T)
+            return var_eigen_vecs[:,0] if if_evecs else wgts[:,0]
+        except ValueError as ex:
+            logging.warn(ex)
+            return np.array([0] * len(df_prices.columns))
+
+    def init_status(df_prices, if_evecs):
+        wg = Status.get_weight(df_prices, if_evecs)
+        status = Status(wg)
         return status
 
     def get_if_rebalance(self, updated_epoch_seconds, rebalance_period_minutes):
-        if updated_epoch_seconds < self.last_rebalance_epoch_seconds + rebalance_period_minutes * 60:
+        next_rebalance_epoch_seconds = self.last_rebalance_epoch_seconds + rebalance_period_minutes * 60;
+        next_rebalance_epoch_seconds = int(next_rebalance_epoch_seconds // (rebalance_period_minutes * 60)) * (rebalance_period_minutes * 60)
+        if updated_epoch_seconds < next_rebalance_epoch_seconds:
             return False
         return True
 
-    def rebalance_weight(self, df_prices):
-        _, var_eigen_vecs, wgts = algo.minimal_predictability.calculate.get_var1_wgts_values_transpose(*df_prices.values.T)
-        self.weight = wgts[:,0]
+    def rebalance_weight(self, df_prices, if_evecs):
+        wg = Status.get_weight(df_prices, if_evecs)
+        self.weight = wg
+        logging.info(f'rebalance at {df_prices.iloc[-1].name} ({int(df_prices.iloc[-1].name.timestamp())}), obtained weight: {self.weight}')
         last_rebalance_epoch_seconds = df_prices.index[-1].to_datetime64().astype('int') // 10**9
+        current_rebalance_epoch_seconds = last_rebalance_epoch_seconds + 60
         # gracefully anchor (5 minutes)
-        last_rebalance_epoch_seconds = int(last_rebalance_epoch_seconds // 300) * 300
-        self.last_rebalance_epoch_seconds = last_rebalance_epoch_seconds
+        current_rebalance_epoch_seconds = int(current_rebalance_epoch_seconds // 300) * 300
+        self.last_rebalance_epoch_seconds = current_rebalance_epoch_seconds
 
 
 class TradeManager:
     def __init__(self, symbols, trading_param=None, price_cache=None):
         self.trading_param = trading_param if trading_param is not None else TradingParam.get_default_param(symbols)
         self.price_cache = price_cache if price_cache is not None else algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
-        self.status = Status.init_status(self.price_cache.get_df_prices())
+        self.status = Status.init_status(self.price_cache.get_df_prices(), self.trading_param.if_evecs)
         self.trade_execution = algo.trading.execution.TradeExecution(symbols)
         self.df_prices = self.price_cache.get_df_prices()
         self.on_price_update()
@@ -83,18 +103,21 @@ class TradeManager:
 
         position_changed = self.get_position_changed()
         if position_changed != 0:
-            logging.info(f'[on_price_update] position has changed: {position_changed}')
-            self.trade_execution.execute(self.status.weight, position_changed)
+            logging.info(f'[on_price_update] at {self.df_prices.iloc[-1].name}, position has changed: {position_changed}')
+            self.trade_execution.execute(int(self.df_prices.iloc[-1].name.timestamp()), self.df_prices.iloc[-1], self.status.weight, position_changed)
 
+    def get_current_epoch_seconds(self):
+        last_epoch_seconds = self.df_prices.index[-1].to_datetime64().astype('int') // 10**9
+        current_epoch_seconds = last_epoch_seconds + 60
+        return current_epoch_seconds
 
     def get_if_rebalance(self):
-        recent_epoch_seconds = self.df_prices.index[-1].to_datetime64().astype('int') // 10**9
-        return self.status.get_if_rebalance(recent_epoch_seconds, self.trading_param.rebalance_period_minutes)
-
+        current_epoch_seconds = self.get_current_epoch_seconds()
+        return self.status.get_if_rebalance(current_epoch_seconds, self.trading_param.rebalance_period_minutes)
 
     def rebalance_weight(self):
-        self.status.rebalance_weight(self.df_prices)
-        logging.info(f'rebalanced weight: {self.status.weight}')
+        self.status.rebalance_weight(self.df_prices, self.trading_param.if_evecs)
+        logging.info(f'rebalanced at {self.df_prices.index[-1].to_datetime64()} weight: {self.status.weight}')
 
 
     def get_position_changed(self):

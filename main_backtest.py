@@ -31,5 +31,5 @@ class Backtest:
 
 #csv_filename = f'algo/data/market_data_binance.by_minute_ALL_2022-09-01T04:00:00Z_2022-09-30T03:59:00Z.csv'
 csv_filename = f'algo/data/med.csv'
-backtest = Backtest(csv_filename, ['YFIIUSDT', 'ETHUSDT', 'BIFIUSDT'])
+backtest = Backtest(csv_filename, ['BETHUSDT', 'ETHUSDT', 'YFIIUSDT'])
 backtest.run()
