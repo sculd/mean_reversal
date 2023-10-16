@@ -1,3 +1,4 @@
+import numpy as np
 import datetime, logging
 
 
@@ -27,6 +28,8 @@ class ExecutionRecords:
                 if direction == 1:
                     pnl = record.value - value
                     pnl = round(pnl, 1)
+                    if np.isnan(pnl):
+                        continue
                     pnls.append(pnl)
                     cum_pnl += pnl
             
@@ -60,7 +63,7 @@ class TradeExecution:
         if (direction == 1 and self.direction != 1) or (direction == -1 and self.direction == 1):
             self.valid_execution_records.records.append(record)
             if direction == -1:
-                self.valid_execution_records.get_cum_pnl()
+                print(f'closed trades pairs: {len(self.valid_execution_records.records)//2}, cum_pnl: {self.valid_execution_records.get_cum_pnl()}')
         self.direction = direction
 
     def get_out_of_current_position(self, epoch_seconds, price_series, weights):
