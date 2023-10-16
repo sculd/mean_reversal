@@ -99,6 +99,7 @@ class TradeManager:
         '''
         logging.debug(f'on_price_update:\n{self.df_prices.iloc[-1]}')
         if self.get_if_rebalance():
+            self.trade_execution.get_out_of_current_position(int(self.df_prices.iloc[-1].name.timestamp()), self.df_prices.iloc[-1], self.status.weight)
             self.rebalance_weight()
 
         position_changed = self.get_position_changed()
@@ -118,7 +119,6 @@ class TradeManager:
     def rebalance_weight(self):
         self.status.rebalance_weight(self.df_prices, self.trading_param.if_evecs)
         logging.info(f'rebalanced at {self.df_prices.index[-1].to_datetime64()} weight: {self.status.weight}')
-
 
     def get_position_changed(self):
         logging.debug('get_position_changed')

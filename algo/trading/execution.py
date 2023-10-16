@@ -1,4 +1,4 @@
-import logging
+import datetime, logging
 
 
 class ExecutionRecord:
@@ -6,13 +6,16 @@ class ExecutionRecord:
         self.epoch_seconds, self.prices, self.weights, self.direction = epoch_seconds, prices, weights, direction
         pws = zip(list(prices), weights)
         self.value = round(sum(map(lambda pw: pw[0] * pw[1], pws)), 1)
+    
+    def print(self):
+        print(f'at {datetime.datetime.fromtimestamp(self.epoch_seconds)}, epoch_seconds: {self.epoch_seconds}, prices: {self.prices}, weights: {self.weights}, value: {self.value}, direction: {self.direction}')
 
 
 class ExecutionRecords:
     def __init__(self):
         self.records = []
 
-    def get_pnl(self):
+    def get_cum_pnl(self):
         direction = 0
         value = 0
         pnls = []
@@ -29,8 +32,12 @@ class ExecutionRecords:
             
             direction = record.direction
 
-        logging.info(f'cum_pnl: {cum_pnl}\npnls: {pnls}')
-        
+        return cum_pnl
+
+    def print(self):
+        for record in self.records:
+            record.print()
+
 
 class TradeExecution:
     def __init__(self, symbols):
@@ -53,6 +60,16 @@ class TradeExecution:
         if (direction == 1 and self.direction != 1) or (direction == -1 and self.direction == 1):
             self.valid_execution_records.records.append(record)
             if direction == -1:
-                self.valid_execution_records.get_pnl()
+                self.valid_execution_records.get_cum_pnl()
         self.direction = direction
 
+    def get_out_of_current_position(self, epoch_seconds, price_series, weights):
+        if self.direction != 1:
+            return
+        logging.info(f'get_out_of_current_position prices: {price_series.values}, weights: {weights}')
+        self.execute(epoch_seconds, price_series, weights, -1)
+
+
+    def print(self):
+        self.valid_execution_records.print()
+        print(f'closed trades pairs: {len(self.valid_execution_records.records)//2}, cum_pnl: {self.valid_execution_records.get_cum_pnl()}')
