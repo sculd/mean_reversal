@@ -11,6 +11,7 @@ default_rebalance_period_minutes = 180
 default_bband_window_minutes = 60
 default_max_window = max(default_fitting_window_minutes, default_rebalance_period_minutes, default_bband_window_minutes)
 default_bband_trading_param = algo.statarbitrage.bband.TradingParam(default_bband_window_minutes, 2.0)
+default_if_evecs = True
 
 
 class TradingParam:
@@ -27,7 +28,7 @@ class TradingParam:
         return max(self.fitting_window_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
 
     def get_default_param(symbols):
-        return TradingParam(symbols, default_fitting_window_minutes, default_rebalance_period_minutes, True, default_bband_trading_param)
+        return TradingParam(symbols, default_fitting_window_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
 
 
 class Status:
