@@ -7,6 +7,7 @@ import sys
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s %(message)s')
 
+
 class Live:
     def __init__(self, symbols, exchange):
         self.trading_param = algo.trading.trade.TradingParam.get_default_param(symbols)

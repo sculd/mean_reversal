@@ -76,9 +76,9 @@ class PriceCache:
         return int(time.time())
 
     def fetch_closes_since(self, exchange, symbols, since_epoch_seconds):
-        logging.info(f'fetching prices at {exchange} for {symbols} since {since_epoch_seconds}({datetime.datetime.fromtimestamp(since_epoch_seconds)})')
+        logging.debug(f'fetching prices at {exchange} for {symbols} since {since_epoch_seconds}({datetime.datetime.fromtimestamp(since_epoch_seconds)})')
         df = fetch_closes_since(exchange, symbols, since_epoch_seconds)
-        logging.info(f'fetched {len(df)} rows')
+        logging.debug(f'fetched {len(df)} rows')
         return df
 
     def fetch_closes(self, exchange, symbols, window_minutes):
