@@ -3,6 +3,7 @@ import pandas as pd, numpy as np
 import scipy
 from numpy_ext import rolling_apply as rolling_apply_ext
 
+# the eigen_vecs are for calculation only, the actual distribution over the asset is returned in `wgts`.
 def calc_autocov_matrix(arr, lag):
     m = arr.shape[0]  # sample size.
     arr_lead = arr[lag:]
@@ -33,8 +34,10 @@ def get_var1_wgts_values_transpose(*df_values_T):
     if np.sign((np.transpose(df_values_T) @ wgts[:,0])[0]) < 0:
         var_eigen_vecs, wgts = var_eigen_vecs * -1, wgts * -1
 
+    #wgts_normalized = np.array([wgt / np.linalg.norm(wgt) for wgt in wgts])
     return var_eigen_vals, var_eigen_vecs, wgts
 
+# The same function that takes df.values.T instead of df itself. This is used in the custom rolling function as the custom rolling function does not take the data frame but the arrays.
 def get_var1_wgts(df):
     return get_var1_wgts_values_transpose(*df.values.T)
 
