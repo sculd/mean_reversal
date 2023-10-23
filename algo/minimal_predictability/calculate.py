@@ -40,18 +40,3 @@ def get_var1_wgts_values_transpose(*df_values_T):
 # The same function that takes df.values.T instead of df itself. This is used in the custom rolling function as the custom rolling function does not take the data frame but the arrays.
 def get_var1_wgts(df):
     return get_var1_wgts_values_transpose(*df.values.T)
-
-
-def get_var1_wgts_values_transpose_rolling(df_prices, window, rebalance_period, sample_unit_minutes, order, if_evecs):
-    '''
-    order: 0 for the smallest eigen value, -1 for the largest.
-    if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
-    '''
-    i = 1 if if_evecs else 2
-    rolling_wgt = rolling_apply_ext(lambda *vsT: get_var1_wgts_values_transpose(*vsT)[i][:,order], window, *df_prices.values.T)
-    df_rolling_wgt = pd.DataFrame(rolling_wgt, index=df_prices.index, columns=df_prices.columns)
-    # shift by one time unit as the weight up to now will practically be applied in the next step. (?)
-    df_rolling_wgt = df_rolling_wgt.shift()
-    #df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period * sample_unit_minutes}min').first().resample(f'{sample_unit_minutes}min').first().ffill()
-    df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period * sample_unit_minutes}min').first()
-    return df_rolling_wgt, df_rolling_wgt_resampled

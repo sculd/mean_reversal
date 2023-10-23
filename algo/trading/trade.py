@@ -6,29 +6,31 @@ import algo.statarbitrage.bband
 import algo.trading.prices
 import algo.trading.execution
 
-default_fitting_window_minutes = 180
+default_fitting_window = 180
+default_train_data_sample_period_minutes = 10
 default_rebalance_period_minutes = 180
-default_bband_window_minutes = 60
-default_max_window = max(default_fitting_window_minutes, default_rebalance_period_minutes, default_bband_window_minutes)
-default_bband_trading_param = algo.statarbitrage.bband.TradingParam(default_bband_window_minutes, 2.0)
+default_bband_window = 60
+default_bband_trading_param = algo.statarbitrage.bband.BBandTradingParam(default_bband_window, 2.0)
 default_if_evecs = True
 
 
 class TradingParam:
-    def __init__(self, symbols, fitting_window_minutes, rebalance_period_minutes, if_evecs, bband_trading_param):
+    def __init__(self, symbols, fitting_window, default_train_data_sample_period_minutes, rebalance_period_minutes, if_evecs, bband_trading_param):
         '''
         if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
         '''   
         self.symbols = symbols
-        self.fitting_window_minutes, self.rebalance_period_minutes = fitting_window_minutes, rebalance_period_minutes
+        self.fitting_window = fitting_window
+        self.train_data_sample_period_minutes = default_train_data_sample_period_minutes
+        self.rebalance_period_minutes = rebalance_period_minutes
         self.if_evecs = if_evecs
         self.bband_trading_param = bband_trading_param
 
     def get_max_window_minutes(self):
-        return max(self.fitting_window_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
+        return max(self.fitting_window * self.train_data_sample_period_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
 
     def get_default_param(symbols):
-        return TradingParam(symbols, default_fitting_window_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
+        return TradingParam(symbols, default_fitting_window, default_train_data_sample_period_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
 
 
 class Status:
@@ -48,8 +50,8 @@ class Status:
             logging.warn(ex)
             return np.array([0] * len(df_prices.columns))
 
-    def init_status(df_prices, if_evecs):
-        wg = Status.get_weight(df_prices, if_evecs)
+    def init_status(df_prices_train, if_evecs):
+        wg = Status.get_weight(df_prices_train, if_evecs)
         status = Status(wg)
         return status
 
@@ -60,8 +62,8 @@ class Status:
             return False
         return True
 
-    def rebalance_weight(self, df_prices, if_evecs):
-        wg = Status.get_weight(df_prices, if_evecs)
+    def rebalance_weight(self, df_prices, df_prices_train, if_evecs):
+        wg = Status.get_weight(df_prices_train, if_evecs)
         self.weight = wg
         logging.info(f'rebalance at {df_prices.iloc[-1].name} ({int(df_prices.iloc[-1].name.timestamp())}), obtained weight: {self.weight}')
         last_rebalance_epoch_seconds = df_prices.index[-1].to_datetime64().astype('int') // 10**9
@@ -75,9 +77,9 @@ class TradeManager:
     def __init__(self, symbols, trading_param=None, price_cache=None):
         self.trading_param = trading_param if trading_param is not None else TradingParam.get_default_param(symbols)
         self.price_cache = price_cache if price_cache is not None else algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
-        self.status = Status.init_status(self.price_cache.get_df_prices(), self.trading_param.if_evecs)
-        self.trade_execution = algo.trading.execution.TradeExecution(symbols)
         self.df_prices = self.price_cache.get_df_prices()
+        self.status = Status.init_status(self.get_trading_df_price(), self.trading_param.if_evecs)
+        self.trade_execution = algo.trading.execution.TradeExecution(symbols)
         self.on_price_update()
 
 
@@ -113,12 +115,18 @@ class TradeManager:
         current_epoch_seconds = last_epoch_seconds + 60
         return current_epoch_seconds
 
+    def get_trading_df_price(self):
+        df_prices_resampled = self.df_prices.resample(f'{self.trading_param.train_data_sample_period_minutes}min').last().dropna()
+        l = len(df_prices_resampled)
+        df_prices_train = df_prices_resampled.iloc[max(0, l-self.trading_param.fitting_window):]
+        return df_prices_train
+
     def get_if_rebalance(self):
         current_epoch_seconds = self.get_current_epoch_seconds()
         return self.status.get_if_rebalance(current_epoch_seconds, self.trading_param.rebalance_period_minutes)
 
     def rebalance_weight(self):
-        self.status.rebalance_weight(self.df_prices, self.trading_param.if_evecs)
+        self.status.rebalance_weight(self.df_prices, self.get_trading_df_price(), self.trading_param.if_evecs)
         logging.info(f'rebalanced at {self.df_prices.index[-1].to_datetime64()} weight: {self.status.weight}')
 
     def get_position_changed(self):

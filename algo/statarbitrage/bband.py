@@ -6,11 +6,11 @@ def bband(values, window, stds):
     df_band['lower'] = (values.ewm(alpha=0.1).mean() - stds * values.rolling(window).std()) # / values.rolling(window).apply(adjustment_factor))
     return df_band   
 
-class TradingParam:
+class BBandTradingParam:
     def __init__(self, bb_windows, bb_stdev):
         self.bb_windows, self.bb_stdev = bb_windows, bb_stdev
 
-def add_features(df_prices, wgt, trading_param):
+def add_features(df_prices, wgt, bband_trading_param):
     df_prices_weighted = df_prices * wgt
     values = df_prices_weighted.sum(axis=1).to_frame().rename(columns={0: 'value'})
 
@@ -32,9 +32,9 @@ def add_features(df_prices, wgt, trading_param):
 
     # bband and crossing
     '''
-    upper, middle, lower = talib.BBANDS(values.value, trading_param.bb_windows, trading_param.bb_stdev, matype=MA_Type.T3)
+    upper, middle, lower = talib.BBANDS(values.value, bband_trading_param.bb_windows, bband_trading_param.bb_stdev, matype=MA_Type.T3)
     '''
-    df_band = bband(values.value, trading_param.bb_windows, trading_param.bb_stdev)
+    df_band = bband(values.value, bband_trading_param.bb_windows, bband_trading_param.bb_stdev)
     upper, lower = df_band.upper, df_band.lower
 
     values['upper'] = upper
