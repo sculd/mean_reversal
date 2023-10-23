@@ -21,7 +21,7 @@ class Live:
         self.cycle.start()
 
 
-_exchange_gemini = ccxt.gemini()
-
-live = Live(['BTC/USD', 'ETH/USD', 'LTC/USD'], exchange=_exchange_gemini)
+live = Live(['AAVE/USD', 'SOL/USD'], exchange=ccxt.gemini())
 live.run()
+
+
