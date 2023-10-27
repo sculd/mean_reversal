@@ -15,11 +15,10 @@ default_if_evecs = True
 
 
 class TradingParam:
-    def __init__(self, symbols, fitting_window, default_train_data_sample_period_minutes, rebalance_period_minutes, if_evecs, bband_trading_param):
+    def __init__(self, fitting_window, default_train_data_sample_period_minutes, rebalance_period_minutes, if_evecs, bband_trading_param):
         '''
         if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
-        '''   
-        self.symbols = symbols
+        '''
         self.fitting_window = fitting_window
         self.train_data_sample_period_minutes = default_train_data_sample_period_minutes
         self.rebalance_period_minutes = rebalance_period_minutes
@@ -29,8 +28,8 @@ class TradingParam:
     def get_max_window_minutes(self):
         return max(self.fitting_window * self.train_data_sample_period_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
 
-    def get_default_param(symbols):
-        return TradingParam(symbols, default_fitting_window, default_train_data_sample_period_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
+    def get_default_param():
+        return TradingParam(default_fitting_window, default_train_data_sample_period_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
 
 
 class Status:
@@ -75,7 +74,7 @@ class Status:
 
 class TradeManager:
     def __init__(self, symbols, trading_param=None, price_cache=None):
-        self.trading_param = trading_param if trading_param is not None else TradingParam.get_default_param(symbols)
+        self.trading_param = trading_param if trading_param is not None else TradingParam.get_default_param()
         self.price_cache = price_cache if price_cache is not None else algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
         self.df_prices = self.price_cache.get_df_prices()
         self.status = Status.init_status(self.get_trading_df_price(), self.trading_param.if_evecs)
