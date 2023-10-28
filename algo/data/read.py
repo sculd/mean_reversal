@@ -30,9 +30,9 @@ date_str_20230930 = "2023-09-30"
 
 
 base_binance = 'algo/data/binance'
-df_binance_202209 = pd.read_parquet(f'{base_binance}/df_close_202209.parquet')
-df_binance_202308 = pd.read_parquet(f'{base_binance}/df_close_202308.parquet')
-df_binance_202309 = pd.read_parquet(f'{base_binance}/df_close_202309.parquet')
+df_binance_202209 = pd.read_parquet(f'{base_binance}/df_binance_202209.parquet')
+df_binance_202308 = pd.read_parquet(f'{base_binance}/df_binance_202308.parquet')
+df_binance_202309 = pd.read_parquet(f'{base_binance}/df_binance_202309.parquet')
 
 
 base_gemini = 'algo/data/gemini'

@@ -1,12 +1,15 @@
 import pandas as pd, numpy as np
 import datetime, time
-
+import logging
 
 class BacktestCsvPriceCache:
     def __init__(self, csv_filename, symbols, windows_minutes):
         df_prices_history = pd.read_csv(csv_filename)
         df_prices_history['time'] = pd.to_datetime(df_prices_history['timestamp'], unit='s')
-        df_prices_history_close = df_prices_history.pivot(index='time', columns='symbol', values='close')
+        if 'symbol' in df_prices_history.columns:
+            df_prices_history_close = df_prices_history.pivot(index='time', columns='symbol', values='close')
+        else:
+            df_prices_history_close = df_prices_history.set_index('time')
         df_prices_history_close = df_prices_history_close[symbols]
         self.df_prices_history_close = df_prices_history_close
 
@@ -20,6 +23,8 @@ class BacktestCsvPriceCache:
         self.price_history_values = df_prices_history_close.values
         self.history_read_i = 0
         self.latest_now_epoch_seconds = 0
+        logging.info(f'csv price cache loaded {csv_filename}')
+        
 
     def get_now_epoch_seconds(self, anchored):
         if self.history_read_i >= len(self.price_history_epoch_seconds):
