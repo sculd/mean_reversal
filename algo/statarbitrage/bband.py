@@ -40,7 +40,7 @@ def add_features(df_prices, wgt, bband_trading_param):
     values['upper'] = upper
     values['lower'] = lower 
     #upper, middle, lower, values = upper.dropna(), middle.dropna(), lower.dropna(), values.dropna()
-    
+
     values['value_prev'] = values.value.shift()
     values['lower_crossed_upward'] = ((values.value_prev <= lower.shift()) & (values.value >= lower)).astype(np.int32)
     values['lower_crossed_downward'] = ((values.value_prev >= lower.shift()) & (values.value <= lower)).astype(np.int32)

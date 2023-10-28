@@ -8,7 +8,7 @@ import algo.trading.execution
 
 default_fitting_window = 180
 default_train_data_sample_period_minutes = 10
-default_rebalance_period_minutes = 180
+default_rebalance_period_minutes = 120
 default_bband_window = 60
 default_bband_trading_param = algo.statarbitrage.bband.BBandTradingParam(default_bband_window, 2.0)
 default_if_evecs = True
@@ -106,7 +106,8 @@ class TradeManager:
 
         position_changed = self.get_position_changed()
         if position_changed != 0:
-            logging.info(f'[on_price_update] at {self.df_prices.iloc[-1].name}, position has changed: {position_changed}')
+            last_epoch_seconds = self.df_prices.index[-1].to_datetime64().astype('int') // 10**9
+            logging.info(f'[on_price_update] at {self.df_prices.iloc[-1].name}({last_epoch_seconds}),  position has changed: {position_changed}')
             self.trade_execution.execute(int(self.df_prices.iloc[-1].name.timestamp()), self.df_prices.iloc[-1], self.status.weight, position_changed)
 
     def get_current_epoch_seconds(self):
