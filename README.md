@@ -35,6 +35,9 @@ bittrex-global, maker 0.1%, taker 0.15%
 | cex.io        | yes       | 0.15        | 0.25        |             |
 | poloniex      | yes       | 0.115       | 0.125       |             |
 | bittrex-global| yes       | 0.1         | 0.15        |             |
+| coinbase      | yes       | 0.25        | 0.40        |             |
+| coinbase-one  | yes       | free        | free        |             |
+| gemini        | yes       | ?           | ?           |             |
 
 
 
