@@ -46,8 +46,11 @@ def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, if_evec
 
     values_list = []
     for index_head_buffered, index_head, index_tail, df_prices_i, wgt in df_prices_list:
-        values_i = algo.statarbitrage.bband.add_features(df_prices_i, wgt, stat_arbitrage_trading_param.bband_trading_param)
-        values_i['value_0'] = values_i.value - values_i.value.iloc[0]
+        values_i = algo.statarbitrage.bband.add_features(df_prices_i, wgt, stat_arbitrage_trading_param.bband_trading_param, rebalance_buffer=head_buffer_length)
+        if len(values_i) > 0:
+            values_i['value_0'] = values_i.value - values_i.value.iloc[0]
+            if values_i.at[values_i.index[-1], 'in_position'] == 1:
+                values_i.at[values_i.index[-1], 'position_changed'] = -1
         values_list.append(values_i)
 
     return values_list

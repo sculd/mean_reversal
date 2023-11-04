@@ -1,4 +1,4 @@
-import pandas as pd, numpy as np
+import pandas as pd, numpy as np, datetime
 import logging
 
 import algo.minimal_predictability.calculate
@@ -100,14 +100,21 @@ class TradeManager:
         if position changes, execute the position change.
         '''
         logging.debug(f'on_price_update:\n{self.df_prices.iloc[-1]}')
+
         if self.get_if_rebalance():
-            self.trade_execution.get_out_of_current_position(int(self.df_prices.iloc[-1].name.timestamp()), self.df_prices.iloc[-1], self.status.weight)
+            last_epoch_seconds = int(self.df_prices.iloc[-1].name.timestamp())
+
+            if self.trade_execution.direction == 1:
+                logging.info(f'[on_price_update] should rebalance at {self.df_prices.iloc[-1].name}({last_epoch_seconds}), exiting the current position')
+                self.trade_execution.get_out_of_current_position(last_epoch_seconds, self.df_prices.iloc[-1], self.status.weight)
             self.rebalance_weight()
 
         position_changed = self.get_position_changed()
         if position_changed != 0:
+            if position_changed == 1:
+                position_changed += 0
             last_epoch_seconds = self.df_prices.index[-1].to_datetime64().astype('int') // 10**9
-            logging.info(f'[on_price_update] at {self.df_prices.iloc[-1].name}({last_epoch_seconds}),  position has changed: {position_changed}')
+            logging.info(f'[on_price_update] at {self.df_prices.iloc[-1].name}({last_epoch_seconds}), position has changed: {position_changed}')
             self.trade_execution.execute(int(self.df_prices.iloc[-1].name.timestamp()), self.df_prices.iloc[-1], self.status.weight, position_changed)
 
     def get_current_epoch_seconds(self):
@@ -131,6 +138,9 @@ class TradeManager:
 
     def get_position_changed(self):
         logging.debug('get_position_changed')
-        df_features = algo.statarbitrage.bband.add_features(self.df_prices, self.status.weight, self.trading_param.bband_trading_param)
+        df = self.df_prices
+        dt_head = df.index[-1].floor('2h').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows)
+        df = df[df.index >= dt_head]
+        df_features = algo.statarbitrage.bband.add_features(df, self.status.weight, self.trading_param.bband_trading_param)
         return df_features.iloc[-1].position_changed
 

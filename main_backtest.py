@@ -4,11 +4,18 @@ import algo.trading.prices_csv
 import logging
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+    handlers=[
+        logging.FileHandler("logs/{}.log".format("log_backtest")),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 class Backtest:
     def __init__(self, csv_filename, symbols):
-        self.trading_param = algo.trading.trade.TradingParam.get_default_param(symbols)
+        self.trading_param = algo.trading.trade.TradingParam.get_default_param()
         self.price_cache = algo.trading.prices_csv.BacktestCsvPriceCache(csv_filename, symbols, self.trading_param.get_max_window_minutes())
         self.price_cache.warmup()
         self.trade_manager = algo.trading.trade.TradeManager(symbols, price_cache=self.price_cache)
@@ -30,8 +37,12 @@ class Backtest:
 
 
 
-#csv_filename = f'algo/data/market_data_binance.by_minute_ALL_2022-09-01T04:00:00Z_2022-09-30T03:59:00Z.csv'
+#csv_filename = f'algo/data/binance/df_binance_20230904_05.csv'
+csv_filename = f'algo/data/binance/df_binance_202309.csv'
+backtest = Backtest(csv_filename, ['FARMUSDT', 'COMPUSDT'])
 csv_filename = f'algo/data/med.csv'
-#backtest = Backtest(csv_filename, ['BIFIUSDT', 'ETHUSDT', 'YFIIUSDT'])
-backtest = Backtest(csv_filename, ['BETHUSDT', 'ETHUSDT', 'YFIIUSDT'])
+csv_filename2 = f'algo/data/med2.csv'
+#backtest = Backtest(csv_filename, ['BETHUSDT', 'ETHUSDT', 'YFIIUSDT'])
+#backtest = Backtest(csv_filename, ['SOLUSDT', 'ILVUSDT'])
+#backtest = Backtest(csv_filename2, ['BNBUPUSDT', 'BNBUSDT', 'SOLUSDT'])
 backtest.run()

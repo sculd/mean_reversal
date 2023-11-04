@@ -10,7 +10,7 @@ class BBandTradingParam:
     def __init__(self, bb_windows, bb_stdev):
         self.bb_windows, self.bb_stdev = bb_windows, bb_stdev
 
-def add_features(df_prices, wgt, bband_trading_param):
+def add_features(df_prices, wgt, bband_trading_param, rebalance_buffer=0):
     df_prices_weighted = df_prices * wgt
     values = df_prices_weighted.sum(axis=1).to_frame().rename(columns={0: 'value'})
 
@@ -22,7 +22,7 @@ def add_features(df_prices, wgt, bband_trading_param):
     values = values.fillna(0)
     values['rebalanced'] = values[['rebalanced']].where(values.rebalanced == 0, 1)
 
-    rebalance_ages = [1]
+    rebalance_ages = [1 - rebalance_buffer]
     for i in range(1, len(values.index)):
         rebalance_age = rebalance_ages[-1] + 1
         if values.rebalanced.values[i] > 0:
@@ -40,7 +40,7 @@ def add_features(df_prices, wgt, bband_trading_param):
     values['upper'] = upper
     values['lower'] = lower 
     #upper, middle, lower, values = upper.dropna(), middle.dropna(), lower.dropna(), values.dropna()
-
+    
     values['value_prev'] = values.value.shift()
     values['lower_crossed_upward'] = ((values.value_prev <= lower.shift()) & (values.value >= lower)).astype(np.int32)
     values['lower_crossed_downward'] = ((values.value_prev >= lower.shift()) & (values.value <= lower)).astype(np.int32)
@@ -85,6 +85,7 @@ def add_features(df_prices, wgt, bband_trading_param):
     # the result of position of current cycle gets reflected in the next cycle to prevent look-ahead bias.
     values['profit_raw'] = values.value.diff() * values.in_position.shift()
     values['profit'] = values.value.pct_change() * values.in_position.shift()
+    values = values.dropna()
 
     return values
 
