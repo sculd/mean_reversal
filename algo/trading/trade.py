@@ -139,7 +139,7 @@ class TradeManager:
     def get_position_changed(self):
         logging.debug('get_position_changed')
         df = self.df_prices
-        dt_head = df.index[-1].floor('2h').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows)
+        dt_head = df.index[-1].floor(f'{self.trading_param.rebalance_period_minutes}min').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows)
         df = df[df.index >= dt_head]
         df_features = algo.statarbitrage.bband.add_features(df, self.status.weight, self.trading_param.bband_trading_param)
         if len(df_features) == 0:
