@@ -142,5 +142,7 @@ class TradeManager:
         dt_head = df.index[-1].floor('2h').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows)
         df = df[df.index >= dt_head]
         df_features = algo.statarbitrage.bband.add_features(df, self.status.weight, self.trading_param.bband_trading_param)
+        if len(df_features) == 0:
+            return False
         return df_features.iloc[-1].position_changed
 

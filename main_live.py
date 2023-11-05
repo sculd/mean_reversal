@@ -12,7 +12,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s %
 
 class Live:
     def __init__(self, symbols, exchange):
-        self.trading_param = algo.trading.trade.TradingParam.get_default_param(symbols)
+        self.trading_param = algo.trading.trade.TradingParam.get_default_param()
         self.price_cache = algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes(), exchange=exchange)
         self.trade_manager = algo.trading.trade.TradeManager(symbols, price_cache=self.price_cache)
         self.cycle = algo.trading.cycle.Cycle(self.trade_manager, 10)
