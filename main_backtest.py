@@ -15,7 +15,7 @@ logging.basicConfig(
 
 class Backtest:
     def __init__(self, csv_filename, symbols):
-        self.trading_param = algo.trading.trade.TradingParam.get_default_param()
+        self.trading_param = algo.trading.trade.StatArbitrageTradingParam.get_default_param()
         self.price_cache = algo.trading.prices_csv.BacktestCsvPriceCache(csv_filename, symbols, self.trading_param.get_max_window_minutes())
         self.price_cache.warmup()
         self.trade_manager = algo.trading.trade.TradeManager(symbols, price_cache=self.price_cache)

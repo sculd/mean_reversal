@@ -18,13 +18,6 @@ def get_var1_wgts_values_transpose_rolling(df_prices, window, rebalance_period_m
     df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period_minutes}min').first()
     return df_rolling_wgt, df_rolling_wgt_resampled
 
-class StatArbitrageTradingParam:
-    def __init__(self, train_data_sample_period_minutes, fitting_window, rebalance_period_minutes, bband_trading_param):
-        self.train_data_sample_period_minutes = train_data_sample_period_minutes
-        self.fitting_window = fitting_window
-        self.rebalance_period_minutes = rebalance_period_minutes
-        self.bband_trading_param = bband_trading_param
-
 def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, if_evecs):
     df_prices_train_sampled = df_prices[symbols].resample(f'{stat_arbitrage_trading_param.train_data_sample_period_minutes}min').last().dropna()
     df_rolling_wgt, df_rolling_wgt_resampled = get_var1_wgts_values_transpose_rolling(
