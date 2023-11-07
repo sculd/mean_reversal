@@ -18,6 +18,7 @@ def get_var1_wgts_values_transpose_rolling(df_prices, window, rebalance_period_m
     df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period_minutes}min').first()
     return df_rolling_wgt, df_rolling_wgt_resampled
 
+
 def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, if_evecs):
     df_prices_train_sampled = df_prices[symbols].resample(f'{stat_arbitrage_trading_param.train_data_sample_period_minutes}min').last().dropna()
     df_rolling_wgt, df_rolling_wgt_resampled = get_var1_wgts_values_transpose_rolling(
@@ -26,26 +27,32 @@ def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, if_evec
         rebalance_period_minutes=stat_arbitrage_trading_param.rebalance_period_minutes, 
         order=0, if_evecs=if_evecs)
 
+    df_prices_bband = df_prices[symbols].resample(f'{stat_arbitrage_trading_param.bband_sample_period_minutes}min').last().dropna()
+    df_prices_trading = df_prices[symbols].resample(f'{stat_arbitrage_trading_param.trading_sample_period_minutes}min').last().dropna()
+
     df_prices_list = []
     head_buffer_length = stat_arbitrage_trading_param.bband_trading_param.bb_windows
-    wgt_resammpled = df_rolling_wgt_resampled
+    wgt_resammpled = df_rolling_wgt_resampled.dropna()
     for i, index_head in enumerate(wgt_resammpled.index):
         if i == len(wgt_resammpled.index)-1: continue
 
-        index_head_buffered = index_head - pd.Timedelta(minutes=head_buffer_length)
+        #index_head_buffered = index_head - pd.Timedelta(minutes=head_buffer_length)
+        index_head_buffered = index_head - pd.Timedelta(minutes=head_buffer_length * stat_arbitrage_trading_param.bband_sample_period_minutes)
         index_tail = wgt_resammpled.index[i+1]
-        df_prices_i = df_prices[(df_prices.index < index_tail) & (df_prices.index >= index_head_buffered)]
-        df_prices_list.append((index_head_buffered, index_head, index_tail, df_prices_i, wgt_resammpled.loc[index_head]))
+        df_prices_i_bband = df_prices_bband[(df_prices_bband.index < index_tail) & (df_prices_bband.index >= index_head_buffered)]
+        df_prices_i_trading = df_prices_trading[(df_prices_trading.index < index_tail) & (df_prices_trading.index >= index_head)]
+        df_prices_list.append((index_head_buffered, index_head, index_tail, df_prices_i_bband, df_prices_i_trading, wgt_resammpled.loc[index_head]))
 
     values_list = []
-    for index_head_buffered, index_head, index_tail, df_prices_i, wgt in df_prices_list:
-        values_i = algo.statarbitrage.bband.add_features(df_prices_i, wgt, stat_arbitrage_trading_param.bband_trading_param, rebalance_buffer=head_buffer_length)
+    for index_head_buffered, index_head, index_tail, df_prices_i_bband, df_prices_i_trading, wgt in df_prices_list:
+        values_i = algo.statarbitrage.bband.add_features(df_prices_i_bband, df_prices_i_trading, wgt, stat_arbitrage_trading_param.bband_trading_param, rebalance_buffer=head_buffer_length)
         if len(values_i) > 0:
             values_i['value_0'] = values_i.value - values_i.value.iloc[0]
             if values_i.at[values_i.index[-1], 'in_position'] == 1:
                 values_i.at[values_i.index[-1], 'position_changed'] = -1
+        else:
+            print(f'values_i is empty for df_prices_i_bband: {len(df_prices_i_bband)}, df_prices_i_trading: {len(df_prices_i_trading)}')
         values_list.append(values_i)
 
     return values_list
-
 

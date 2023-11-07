@@ -10,23 +10,30 @@ default_fitting_window = 180
 default_train_data_sample_period_minutes = 10
 default_rebalance_period_minutes = 120
 default_bband_window = 60
+default_bband_sample_period_minutes = 10
+default_trading_sample_period_minutes = 1
 default_bband_trading_param = algo.statarbitrage.bband.BBandTradingParam(default_bband_window, 2.0)
 default_if_evecs = True
 
 
 class StatArbitrageTradingParam:
-    def __init__(self, train_data_sample_period_minutes, fitting_window, rebalance_period_minutes, if_evecs, bband_trading_param):
+    def __init__(self, train_data_sample_period_minutes, fitting_window, rebalance_period_minutes, bband_sample_period_minutes, trading_sample_period_minutes, if_evecs, bband_trading_param):
         self.train_data_sample_period_minutes = train_data_sample_period_minutes
         self.fitting_window = fitting_window
         self.rebalance_period_minutes = rebalance_period_minutes
         self.if_evecs = if_evecs
         self.bband_trading_param = bband_trading_param
+        self.bband_sample_period_minutes = bband_sample_period_minutes
+        self.trading_sample_period_minutes = trading_sample_period_minutes
 
     def get_max_window_minutes(self):
         return max(self.fitting_window * self.train_data_sample_period_minutes, self.rebalance_period_minutes, self.bband_trading_param.bb_windows)
 
     def get_default_param():
-        return StatArbitrageTradingParam(default_fitting_window, default_train_data_sample_period_minutes, default_rebalance_period_minutes, default_if_evecs, default_bband_trading_param)
+        return StatArbitrageTradingParam(
+            default_fitting_window, default_train_data_sample_period_minutes, default_rebalance_period_minutes, 
+            default_bband_sample_period_minutes, default_trading_sample_period_minutes,
+            default_if_evecs, default_bband_trading_param)
 
 
 class Status:
