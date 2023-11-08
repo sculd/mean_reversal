@@ -143,9 +143,13 @@ class TradeManager:
     def get_position_changed(self):
         logging.debug('get_position_changed')
         df = self.df_prices
-        dt_head = df.index[-1].floor(f'{self.trading_param.rebalance_period_minutes}min').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows)
-        df = df[df.index >= dt_head]
-        df_features = algo.statarbitrage.bband.add_features(df, self.status.weight, self.trading_param.bband_trading_param)
+        df_prices_bband = df.resample(f'{self.trading_param.bband_sample_period_minutes}min').last()
+        df_prices_trading = df.resample(f'{self.trading_param.trading_sample_period_minutes}min').last()
+        dt_head_bband = df_prices_bband.index[-1].floor(f'{self.trading_param.rebalance_period_minutes}min').to_pydatetime() - datetime.timedelta(minutes=self.trading_param.bband_trading_param.bb_windows * self.trading_param.bband_sample_period_minutes)
+        dt_head_trading = df_prices_trading.index[-1].floor(f'{self.trading_param.rebalance_period_minutes}min').to_pydatetime()
+        df_prices_bband = df_prices_bband[df_prices_bband.index >= dt_head_bband]
+        df_prices_trading = df_prices_trading[df_prices_trading.index >= dt_head_trading]
+        df_features = algo.statarbitrage.bband.add_features(df_prices_bband, df_prices_trading, self.status.weight, self.trading_param.bband_trading_param)
         if len(df_features) == 0:
             return False
         return df_features.iloc[-1].position_changed
