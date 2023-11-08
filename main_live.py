@@ -6,7 +6,14 @@ import logging
 import sys
 
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+    handlers=[
+        logging.FileHandler("logs/{}.log".format("log_live")),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 
 
