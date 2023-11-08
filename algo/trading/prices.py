@@ -3,7 +3,7 @@ import ccxt
 import datetime, time
 import logging
 
-_exchange_kraken = ccxt.kraken()
+_exchange_factory_kraken = ccxt.kraken
 
 
 def _get_epoch_seconds_before(minutes_before):
@@ -60,13 +60,14 @@ def fetch_closes(exchange, symbols, window_minutes):
 
 
 class PriceCache:
-    def __init__(self, symbols, windows_minutes, exchange=None, df_prices=None, now_epoch_seconds=None):
+    def __init__(self, symbols, windows_minutes, exchange_factory=None, df_prices=None, now_epoch_seconds=None):
         '''
         df_prices, now_epoch_seconds are for unit test.
         '''
         self.symbols = symbols
         self.windows_minutes = windows_minutes
-        self.exchange = exchange if exchange is not None else _exchange_kraken
+        self.exchange_factory = exchange_factory if exchange_factory is not None else _exchange_factory_kraken
+        self.exchange = self.exchange_factory()
         self.df_prices = df_prices
         self.now_epoch_seconds = now_epoch_seconds
     

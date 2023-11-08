@@ -18,9 +18,9 @@ logging.basicConfig(
 
 
 class Live:
-    def __init__(self, symbols, exchange):
+    def __init__(self, symbols, exchange_factory):
         self.trading_param = algo.trading.trade.StatArbitrageTradingParam.get_default_param()
-        self.price_cache = algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes(), exchange=exchange)
+        self.price_cache = algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes(), exchange_factory=exchange_factory)
         self.trade_manager = algo.trading.trade.TradeManager(symbols, price_cache=self.price_cache)
         self.cycle = algo.trading.cycle.Cycle(self.trade_manager, 10)
 
@@ -28,7 +28,7 @@ class Live:
         self.cycle.start()
 
 
-live = Live(['AAVE/USD', 'SOL/USD'], exchange=ccxt.gemini())
+live = Live(['AAVE/USD', 'SOL/USD'], exchange_factory=ccxt.gemini)
 live.run()
 
 
