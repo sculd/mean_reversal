@@ -21,8 +21,10 @@ bittrex-global, maker 0.1%, taker 0.15%
 
 | exchange      | available | maker       | taker       | etc         |
 | ------------- | --------- | ----------- | ----------- | ----------- |
-| bitget        | yes       | 0.1         | 0.1         |             |
+| bitfinex      | yes       | 0.1         | 0.2         |             |
+| poloniex      | yes       | 0.2         | 0.2         |             |
 | bitmart       | yes       | na          | na          |             |
+| bitget        | no        | 0.1         | 0.1         |             |
 | Bitmex        | no        | na          | na          |             |
 | binanceus     | yes       | 0.38        | 0.57        |             |
 | bybit         | no        | na          | na          |             |
@@ -31,13 +33,11 @@ bittrex-global, maker 0.1%, taker 0.15%
 | woo x         | no        | na          | na          |             |
 | bithumb       | na        | 0.04        | 0.25        | btc market free fee! |
 | bitstamp      | yes       | 0.30        | 0.40        |             |
-| bitfinex      | yes       | 0.1         | 0.2         |             |
 | cex.io        | yes       | 0.15        | 0.25        |             |
-| poloniex      | yes       | 0.115       | 0.125       |             |
-| bittrex-global| yes       | 0.1         | 0.15        |             |
+| bittrex-global| no        | 0.1         | 0.15        |             |
 | coinbase      | yes       | 0.25        | 0.40        |             |
 | coinbase-one  | yes       | free        | free        |             |
-| gemini        | yes       | ?           | ?           |             |
+| gemini        | yes       | 0.10        | 0.30        |             |
 
 
 
