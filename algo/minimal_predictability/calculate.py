@@ -10,6 +10,16 @@ def calc_autocov_matrix(arr, lag):
     arr_lag = arr[:m-lag]
     return 1.0 / (m - lag - 1) * (arr_lead - np.nanmean(arr_lead, axis=0)).T @ (arr_lag - np.nanmean(arr_lag, axis=0))
 
+def get_mat_predictability_transpose(*df_values_T):
+    cov = np.cov(df_values_T)
+    cov_inv = np.linalg.inv(cov)
+    cov_inv_sqrt = scipy.linalg.sqrtm(cov_inv)
+    autocov = calc_autocov_matrix(np.transpose(df_values_T), 1)
+    #var_predictability = cov_inv_sqrt @ autocov @ cov @ autocov.T @ cov_inv_sqrt.T
+    mat_predictability = cov_inv_sqrt @ autocov @ cov_inv @ autocov.T @ cov_inv_sqrt.T
+
+    return mat_predictability
+
 def get_var1_wgts_values_transpose(*df_values_T):
     cov = np.cov(df_values_T)
     cov_inv = np.linalg.inv(cov)
