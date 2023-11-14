@@ -21,23 +21,23 @@ bittrex-global, maker 0.1%, taker 0.15%
 
 | exchange      | available | maker       | taker       | etc         |
 | ------------- | --------- | ----------- | ----------- | ----------- |
-| bitfinex      | yes       | 0.1         | 0.2         |             |
+| bitfinex      | kr,not us | 0.1         | 0.2         |             |
 | poloniex      | yes       | 0.2         | 0.2         |             |
-| bitmart       | yes       | na          | na          |             |
+| bithumb       | na        | 0.04        | 0.25        | btc market free fee! |
+| cex.io        | yes       | 0.15        | 0.25        |             |
+| gemini        | yes       | 0.10        | 0.30        |             |
+| bitstamp      | yes       | 0.30        | 0.40        |             |
+| coinbase      | yes       | 0.25        | 0.40        |             |
+| coinbase-one  | yes       | free        | free        |             |
+| binanceus     | yes       | 0.38        | 0.57        |             |
+| bitmart       | not in ny | na          | na          |             |
 | bitget        | no        | 0.1         | 0.1         |             |
 | Bitmex        | no        | na          | na          |             |
-| binanceus     | yes       | 0.38        | 0.57        |             |
 | bybit         | no        | na          | na          |             |
 | Kraken        | not in ny | 0.16        | 0.26        | opening fee 0.02%, 0.02% per 4 hours in margin. |
 | okx           | no        | na          | na          |             |
 | woo x         | no        | na          | na          |             |
-| bithumb       | na        | 0.04        | 0.25        | btc market free fee! |
-| bitstamp      | yes       | 0.30        | 0.40        |             |
-| cex.io        | yes       | 0.15        | 0.25        |             |
 | bittrex-global| no        | 0.1         | 0.15        |             |
-| coinbase      | yes       | 0.25        | 0.40        |             |
-| coinbase-one  | yes       | free        | free        |             |
-| gemini        | yes       | 0.10        | 0.30        |             |
 
 
 
