@@ -23,6 +23,5 @@ def get_wgts_predictability_transpose(*df_values_T):
 
     return algo.mean_reversion.common.align_eigs_transpose(mat, *df_values_T)
 
-
-def get_wgts_predictability(df):
+def get_wgts(df):
     return get_wgts_predictability_transpose(*df.values.T)

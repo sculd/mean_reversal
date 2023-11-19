@@ -22,7 +22,7 @@ eq_cons = {'type': 'eq',
            'fun' : lambda x: np.array([np.sum(np.multiply(x, x)) - 1]),
            'jac' : lambda x: np.multiply(x, 2)}
 
-def solve_min_quadratic(mat, iterations=3):
+def solve_min_quadratic(mat, iterations=5):
     min_v, max_v = -1, 1
     bounds = [(min_v, max_v) for _ in mat]
 

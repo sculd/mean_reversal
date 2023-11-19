@@ -27,8 +27,7 @@ def get_wgts_crossing_stat_transpose(*df_values_T):
     # autoconv is not symmetric so the eigen decomposition results in imaginary e-vecs.
     #return algo.mean_reversion.common.align_eigs_transpose(mat, *df_values_T)
 
-
-def get_wgts_crossing_stat(df):
+def get_wgts(df):
     return get_wgts_crossing_stat_transpose(*df.values.T)
 
 
