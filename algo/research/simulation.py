@@ -3,12 +3,41 @@ from enum import Enum
 import algo.statarbitrage.bband
 import algo.mean_reversion.predictability
 import algo.mean_reversion.crossing_stat
+import algo.mean_reversion.combination
 
 from numpy_ext import rolling_apply as rolling_apply_ext
 
 class MeanReversioMode(Enum):
     MINIMAL_PREDICTABILITY = 1
     CROSSING_STAT = 2
+    COMBINATION = 3
+
+
+def get_minimal_predictability_optimized_wgts_values_transpose_rolling(df_prices, window, rebalance_period_minutes, order):
+    '''
+    order: 0 for the smallest eigen value, -1 for the largest.
+    if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
+    '''
+    i = 1
+
+    indices, values = [], []
+    indices_sampled, values_sampled = [], []
+    for idx, row in df_prices.iterrows():
+        indices.append(idx)
+        values.append(row.values)
+        epoch_seconds = int(idx.value / 10 ** 9)
+        if epoch_seconds % (rebalance_period_minutes * 60) != 0:
+            continue
+
+        window_values = values[-window:]
+        if len(window_values) >= window:
+            indices_sampled.append(idx)
+            wgt = algo.mean_reversion.predictability.get_wgts_predictability_transpose(*(np.array(window_values).T))[i][:,order]
+            values_sampled.append(wgt)
+
+    df_rolling_wgt_resampled = pd.DataFrame(values_sampled, index=indices_sampled, columns=df_prices.columns)
+
+    return None, df_rolling_wgt_resampled
 
 
 def get_minimal_predictability_wgts_values_transpose_rolling(df_prices, window, rebalance_period_minutes, order):
@@ -17,6 +46,7 @@ def get_minimal_predictability_wgts_values_transpose_rolling(df_prices, window, 
     if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
     '''
     i = 1
+
     rolling_wgt = rolling_apply_ext(lambda *vsT: algo.mean_reversion.predictability.get_wgts_predictability_transpose(*vsT)[i][:,order], window, *df_prices.values.T)
     df_rolling_wgt = pd.DataFrame(rolling_wgt, index=df_prices.index, columns=df_prices.columns)
     # shift by one time unit as the weight up to now will practically be applied in the next step. (?)
@@ -25,12 +55,33 @@ def get_minimal_predictability_wgts_values_transpose_rolling(df_prices, window, 
     df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period_minutes}min').first()
     return df_rolling_wgt, df_rolling_wgt_resampled
 
+
 def get_crossing_stat_wgts_values_transpose_rolling(df_prices, window, rebalance_period_minutes, order):
     '''
     order: 0 for the smallest eigen value, -1 for the largest.
     if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
     '''
     i = 1
+
+
+    indices, values = [], []
+    indices_sampled, values_sampled = [], []
+    for idx, row in df_prices.iterrows():
+        indices.append(idx)
+        values.append(row.values)
+        epoch_seconds = int(idx.value / 10 ** 9)
+        if epoch_seconds % (rebalance_period_minutes * 60) != 0:
+            continue
+
+        window_values = values[-window:]
+        if len(window_values) >= window:
+            indices_sampled.append(idx)
+            wgt = algo.mean_reversion.crossing_stat.get_wgts_crossing_stat_transpose(*(np.array(window_values).T))[i][:,order]
+            values_sampled.append(wgt)
+
+    df_rolling_wgt_resampled = pd.DataFrame(values_sampled, index=indices_sampled, columns=df_prices.columns)
+
+    '''
     rolling_wgt = rolling_apply_ext(lambda *vsT: algo.mean_reversion.crossing_stat.get_wgts_crossing_stat_transpose(*vsT)[i][:,order], window, *df_prices.values.T)
     df_rolling_wgt = pd.DataFrame(rolling_wgt, index=df_prices.index, columns=df_prices.columns)
     # shift by one time unit as the weight up to now will practically be applied in the next step. (?)
@@ -38,6 +89,36 @@ def get_crossing_stat_wgts_values_transpose_rolling(df_prices, window, rebalance
     #df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period_minutes}min').first().resample(f'{sample_unit_minutes}min').first().ffill()
     df_rolling_wgt_resampled = df_rolling_wgt.resample(f'{rebalance_period_minutes}min').first()
     return df_rolling_wgt, df_rolling_wgt_resampled
+    '''
+    return None, df_rolling_wgt_resampled
+
+
+def get_combination_wgts_values_transpose_rolling(df_prices, window, rebalance_period_minutes, order):
+    '''
+    order: 0 for the smallest eigen value, -1 for the largest.
+    if_evecs: True for eigen vectors, False for weights (e-vecs / sqrt(cov))
+    '''
+    i = 1
+
+    indices, values = [], []
+    indices_sampled, values_sampled = [], []
+    for idx, row in df_prices.iterrows():
+        indices.append(idx)
+        values.append(row.values)
+        epoch_seconds = int(idx.value / 10 ** 9)
+        if epoch_seconds % (rebalance_period_minutes * 60) != 0:
+            continue
+
+        window_values = values[-window:]
+        if len(window_values) >= window:
+            indices_sampled.append(idx)
+            wgt = algo.mean_reversion.combination.get_wgts_combination_stat_transpose(*(np.array(window_values).T))[i][:,order]
+            values_sampled.append(wgt)
+
+    df_rolling_wgt_resampled = pd.DataFrame(values_sampled, index=indices_sampled, columns=df_prices.columns)
+
+    return None, df_rolling_wgt_resampled
+
 
 
 def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, mean_reversion_mode):
@@ -47,8 +128,10 @@ def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, mean_re
         wgts_getter = get_minimal_predictability_wgts_values_transpose_rolling
     elif mean_reversion_mode == MeanReversioMode.CROSSING_STAT:
         wgts_getter = get_crossing_stat_wgts_values_transpose_rolling
+    elif mean_reversion_mode == MeanReversioMode.COMBINATION:
+        wgts_getter = get_combination_wgts_values_transpose_rolling
 
-    df_rolling_wgt, df_rolling_wgt_resampled = wgts_getter(
+    _, df_rolling_wgt_resampled = wgts_getter(
         df_prices_train_sampled, 
         window=stat_arbitrage_trading_param.fitting_window, 
         rebalance_period_minutes=stat_arbitrage_trading_param.rebalance_period_minutes, 
@@ -63,7 +146,6 @@ def get_trading_result(df_prices, symbols, stat_arbitrage_trading_param, mean_re
     for i, index_head in enumerate(wgt_resammpled.index):
         if i == len(wgt_resammpled.index)-1: continue
 
-        #index_head_buffered = index_head - pd.Timedelta(minutes=head_buffer_length)
         index_head_buffered = index_head - pd.Timedelta(minutes=head_buffer_length * stat_arbitrage_trading_param.bband_sample_period_minutes)
         index_tail = wgt_resammpled.index[i+1]
         df_prices_i_bband = df_prices_bband[(df_prices_bband.index < index_tail) & (df_prices_bband.index >= index_head_buffered)]
