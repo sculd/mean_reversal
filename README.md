@@ -30,6 +30,7 @@ bittrex-global, maker 0.1%, taker 0.15%
 | coinbase      | yes       | 0.25        | 0.40        |             |
 | coinbase-one  | yes       | free        | free        |             |
 | binanceus     | yes       | 0.38        | 0.57        |             |
+| binance       | no        | 0.10        | 0.10        |             |
 | bitmart       | not in ny | na          | na          |             |
 | bitget        | no        | 0.1         | 0.1         |             |
 | Bitmex        | no        | na          | na          |             |
