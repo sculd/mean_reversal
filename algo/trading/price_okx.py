@@ -6,7 +6,6 @@ import websocket
 
 _ws_address = 'wss://ws.okx.com:8443/ws/v5/business'
 
-import websocket
 import ssl
 import json
 
@@ -14,6 +13,8 @@ import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.getcwd(), 'credential.json')
 from google.cloud import bigquery
 import pytz
+from threading import Thread
+
 
 def _get_epoch_seconds_before(minutes_before):
     now_epoch_seconds = int(time.time() // 60) * 60
@@ -85,8 +86,9 @@ class PriceCache:
         self.now_epoch_seconds = now_epoch_seconds
 
         ws = websocket.WebSocketApp(_ws_address, on_open = self.on_ws_open, on_close = self.on_ws_close, on_message = self.on_ws_message, on_error = self.on_ws_error)
-        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-
+        t = Thread(target=ws.run_forever, kwargs={"sslopt": {"cert_reqs": ssl.CERT_NONE}})
+        t.daemon = True
+        t.start()
 
     def on_ws_open(self, ws):
         print('Opened Connection')
