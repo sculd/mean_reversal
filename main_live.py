@@ -28,7 +28,7 @@ class Live:
         self.cycle.start()
 
 
-live = Live(['AAVE/USD', 'SOL/USD'], exchange_factory=ccxt.gemini)
+live = Live(['LTC-USDT-SWAP', 'BTC-USDT-SWAP'], exchange_factory=ccxt.okx)
 live.run()
 
 
