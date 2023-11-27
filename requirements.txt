@@ -2,4 +2,4 @@ ccxt
 pandas
 numpy
 numpy_ext
-websocket
+websocket-client
