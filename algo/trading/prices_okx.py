@@ -66,14 +66,12 @@ def _message_to_bwt_dicts(symbol, data):
 _msg_cnt = 0
 
 class PriceCache:
-    def __init__(self, symbols, windows_minutes, exchange_factory=None, df_prices=None, now_epoch_seconds=None):
+    def __init__(self, symbols, windows_minutes, df_prices=None, now_epoch_seconds=None):
         '''
         df_prices, now_epoch_seconds are for unit test.
         '''
         self.symbols = symbols
         self.windows_minutes = windows_minutes
-        self.exchange_factory = exchange_factory 
-        self.exchange = self.exchange_factory() if self.exchange_factory else None
         self.df_prices = df_prices
 
         self.bigquery_client = bigquery.Client()
@@ -178,8 +176,8 @@ class PriceCache:
             AND T.timestamp >= "{t_str_since}"
             AND T.symbol = "{symbol}"
             ORDER BY T.timestamp DESC
-            limit 100            
         """
+        print(f'query:\n{query}')
         
         rows_data = {symbol: [], "timestamp": []}
         bq_query_job = self.bigquery_client.query(query)
