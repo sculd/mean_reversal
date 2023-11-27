@@ -83,6 +83,10 @@ class PriceCache:
         self.recent_epoch_seconds = 0
         self.now_epoch_seconds = now_epoch_seconds
 
+        self.ws_connect()
+
+
+    def ws_connect(self):
         ws = websocket.WebSocketApp(_ws_address, on_open = self.on_ws_open, on_close = self.on_ws_close, on_message = self.on_ws_message, on_error = self.on_ws_error)
         t = Thread(target=ws.run_forever, kwargs={"sslopt": {"cert_reqs": ssl.CERT_NONE}})
         t.daemon = True
@@ -144,8 +148,8 @@ class PriceCache:
 
 
     def on_ws_error(self, ws, err):
-        print("Got a an error: ", err)
-
+        print(f'Got an ws error:\n{err}\nReconnect will be attempted in 1 second.')
+        self.ws_connect()
     
     def get_now_epoch_seconds(self):
         if self.now_epoch_seconds is not None:
