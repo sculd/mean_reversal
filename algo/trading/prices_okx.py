@@ -127,7 +127,8 @@ class PriceCache:
         for bwt_dict in bwt_dicts:
             if self.recent_epoch_seconds == bwt_dict['epoch_seconds']:
                 self.dict_recent_prices[symbol] = bwt_dict['close']
-                print(self.dict_recent_prices)
+                if _msg_cnt % 10 == 0:
+                    print(f'on 10ths message, @{self.recent_epoch_seconds} {self.dict_recent_prices}')
             elif self.recent_epoch_seconds < bwt_dict['epoch_seconds']:
                 if self.recent_epoch_seconds > 0:
                     self.df_prices = self.concat_recent_prices()
