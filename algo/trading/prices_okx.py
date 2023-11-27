@@ -135,8 +135,6 @@ class PriceCache:
         df_recent_prices = pd.DataFrame.from_dict({'timestamp': [self.recent_epoch_seconds], **{k: [v] for k, v in self.dict_recent_prices.items()}}).set_index('timestamp')
         df_recent_prices.index = pd.to_datetime(df_recent_prices.index, unit='s', utc=True)
 
-        print(f'df_recent_prices\n{df_recent_prices}')
-
         if self.df_prices is None:
             return df_recent_prices
         
