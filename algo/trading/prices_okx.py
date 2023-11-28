@@ -102,7 +102,7 @@ class PriceCache:
         ws.send(json.dumps(params))
 
     def on_ws_close(self, ws, *args):
-        print(f'websocket closed Connection: {args}. Reconnect will be attempted in 1 second.')
+        logging.warn(f'websocket closed Connection: {args}. Reconnect will be attempted in 1 second.')
         self.ws_connect()
 
     def on_ws_message(self, ws, msg):
@@ -150,7 +150,7 @@ class PriceCache:
 
 
     def on_ws_error(self, ws, err):
-        print(f'Got an ws error:\n{err}\nClosing the connection.')
+        logging.error(f'Got an ws error:\n{err}\nClosing the connection.')
         ws.close()
     
     def get_now_epoch_seconds(self):
@@ -181,7 +181,6 @@ class PriceCache:
             AND T.symbol = "{symbol}"
             ORDER BY T.timestamp DESC
         """
-        print(f'query:\n{query}')
         
         rows_data = {symbol: [], "timestamp": []}
         bq_query_job = self.bigquery_client.query(query)
