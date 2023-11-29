@@ -45,6 +45,10 @@ df_kraken_202309 = pd.read_parquet(f'{base_kraken}/df_kraken_202309.parquet')
 df_kraken_202310 = pd.read_parquet(f'{base_kraken}/df_kraken_202310.parquet')
 
 
+base_okx = 'algo/data/okx'
+df_okx_20231127_1128 = pd.read_parquet(f'{base_okx}/df_okx_20231127_1128.parquet')
+df_okx_20231126_1129 = pd.read_parquet(f'{base_okx}/df_okx_20231126_1129.parquet')
+
 
 def get_close_between_datetime(df, sample_period_minutes, symbols, start_datetime_str, end_datetime_str, if_2023=True):
     df_between = df[(df.index >= start_datetime_str) & (df.index < end_datetime_str)][symbols].resample(f'{sample_period_minutes}min').last().dropna()
