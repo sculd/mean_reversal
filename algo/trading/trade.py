@@ -77,12 +77,12 @@ class Status:
 
 
 class TradeManager:
-    def __init__(self, symbols, trading_param=None, price_cache=None):
+    def __init__(self, symbols, trading_param=None, price_cache=None, trade_execution=None):
         self.trading_param = trading_param if trading_param is not None else StatArbitrageTradingParam.get_default_param()
         self.price_cache = price_cache if price_cache is not None else algo.trading.prices.PriceCache(symbols, self.trading_param.get_max_window_minutes())
         self.df_prices = self.price_cache.get_df_prices()
         self.status = Status.init_status(self.get_trading_df_price(), self.trading_param.if_evecs)
-        self.trade_execution = algo.trading.execution.TradeExecution(symbols)
+        self.trade_execution = trade_execution if trade_execution is not None else algo.trading.execution.TradeExecution(symbols)
         self.on_price_update()
 
 
