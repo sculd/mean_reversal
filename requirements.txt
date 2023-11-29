@@ -3,3 +3,4 @@ pandas
 numpy
 numpy_ext
 websocket-client
+python-okx==0.2.3
