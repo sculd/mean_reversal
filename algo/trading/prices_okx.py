@@ -192,6 +192,7 @@ class PriceCache:
         df.index = pd.to_datetime(df.index, unit='s', utc=True)
 
         logging.debug(f'fetched {len(df)} rows')
+        del bq_query_job
         return df
 
     def fetch_closes_since(self, symbols, since_epoch_seconds):
