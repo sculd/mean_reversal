@@ -3,13 +3,13 @@ import datetime, logging
 
 
 class ExecutionRecord:
-    def __init__(self, epoch_seconds, prices, weights, direction):
-        self.epoch_seconds, self.prices, self.weights, self.direction = epoch_seconds, prices, weights, direction
+    def __init__(self, epoch_seconds, symbols, prices, weights, direction):
+        self.epoch_seconds, self.symbols, self.prices, self.weights, self.direction = epoch_seconds, symbols, prices, weights, direction
         self.value = round(sum(map(lambda pw: pw[0] * pw[1], zip(list(prices), weights))), 1)
         self.magnitude = round(sum(map(lambda pw: pw[0] * abs(pw[1]), zip(list(prices), weights))), 1)
     
     def __str__(self):
-        return f'at {datetime.datetime.fromtimestamp(self.epoch_seconds)}, prices: {self.prices}, weights: {self.weights}, value: {self.value}, magnitude: {self.magnitude}, direction: {self.direction}'
+        return f'at {datetime.datetime.fromtimestamp(self.epoch_seconds)}, symbols: {self.symbols}, prices: {self.prices}, weights: {self.weights}, value: {self.value}, magnitude: {self.magnitude}, direction: {self.direction}'
 
     def print(self):
         logging.info(str(self))
@@ -104,7 +104,7 @@ class TradeExecution:
         pws = zip(list(price_series), weights)
         value = round(sum(map(lambda pw: pw[0] * pw[1], pws)), 3)
         logging.info(f'at {epoch_seconds}, execute prices: {price_series.values}, weights: {weights}, value: {value}, direction: {direction}')
-        record = ExecutionRecord(epoch_seconds, price_series.values, weights, direction)
+        record = ExecutionRecord(epoch_seconds, self.symbols, price_series.values, weights, direction)
         self.execution_records.append_record(record)
 
         if direction == 1 and self.direction != 1:

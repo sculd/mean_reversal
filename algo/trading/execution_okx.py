@@ -62,7 +62,7 @@ class TradeExecution:
         '''
         pws = zip(list(price_series), weights)
         value = round(sum(map(lambda pw: pw[0] * pw[1], pws)), 3)
-        logging.info(f'at {epoch_seconds}, execute prices: {price_series.values}, weights: {weights}, value: {value}, direction: {direction}')
+        logging.info(f'at {epoch_seconds}, for {self.symbols}, execute prices: {price_series.values}, weights: {weights}, value: {value}, direction: {direction}')
         record = algo.trading.execution.ExecutionRecord(epoch_seconds, self.symbols, price_series.values, weights, direction)
         self.execution_records.append_record(record)
 
@@ -99,7 +99,7 @@ class TradeExecution:
         if direction == -1 and self.direction == 1:
             closed_record = algo.trading.execution.ClosedExecutionRecord(self.closed_execution_records.enter_record, record)
             self.closed_execution_records.closed_records.append(closed_record)
-            #logging.info(f'closed: {closed_record} trades pairs: {len(self.closed_execution_records.closed_records)}, cum_pnl: {self.closed_execution_records.get_cum_pnl()}')
+            logging.info(f'at {epoch_seconds}, for {self.symbols}, closed: {closed_record}, trades pairs: {len(self.closed_execution_records.closed_records)}, cum_pnl: {self.closed_execution_records.get_cum_pnl()}')
 
             trade_api = get_trade_api()
             account_api = get_account_api()
