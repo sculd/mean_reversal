@@ -28,13 +28,14 @@ def get_account_api():
 
 
 class TradeExecution:
-    def __init__(self, symbols, target_betsize):
+    def __init__(self, symbols, target_betsize, leverage):
         self.symbols = symbols
         self.target_betsize = target_betsize
         self.direction = 0   
         self.execution_records = algo.trading.execution.ExecutionRecords()
         self.closed_execution_records = algo.trading.execution.ClosedExecutionRecords()
         self.init_inst_data()
+        self.setup_leverage(symbols, leverage)
 
     def init_inst_data(self):
         public_data_api = PublicData.PublicAPI(flag=_flag)
@@ -42,6 +43,18 @@ class TradeExecution:
             instType="SWAP"
         )
         self.inst_data = {instData['instId']: instData for instData in get_instruments_result['data']}
+
+    def setup_leverage(self, symbols, leverage):
+        account_api = get_account_api()
+        leverage = int(leverage)
+        for symbol in symbols:
+            logging.info(f'setting up the leverage for {symbol} as {leverage}')
+            result = account_api.set_leverage(
+                instId = symbol,
+                lever = str(leverage),
+                mgnMode = "isolated"
+            )
+            print(result)
 
     def get_size_factor(self, price_series, weights):
         pws = zip(list(price_series), weights)
