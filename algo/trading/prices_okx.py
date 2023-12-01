@@ -114,7 +114,7 @@ class PriceCache:
         if 'data' not in msg_js:
             print(f'{msg} is not candle msg, skipping')
             return
-
+ 
         msg_data = msg_js['data']
         
         _msg_cnt += 1

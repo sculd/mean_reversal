@@ -30,13 +30,12 @@ class Live:
         self.cycle.start()
 
 
-symbols_list = \
-    [['DASH-USDT-SWAP', 'GMX-USDT-SWAP'],
-    ['ETC-USDT-SWAP', 'ZEC-USDT-SWAP'],
-    ['BSV-USDT-SWAP', 'LTC-USDT-SWAP'],
-    ['ZEN-USDT-SWAP', 'XMR-USDT-SWAP'],
-    ['KSM-USDT-SWAP', 'COMP-USDT-SWAP'],
-    ['SOL-USDT-SWAP', 'BNB-USDT-SWAP']]
+symbols_list =\
+    [['ETC-USD-SWAP', 'ZEC-USD-SWAP'],
+    ['BSV-USD-SWAP', 'LTC-USD-SWAP'],
+    ['DASH-USD-SWAP', 'BCH-USD-SWAP'],
+    ['NEO-USD-SWAP', 'KSM-USD-SWAP'],
+    ['LINK-USD-SWAP', 'AVAX-USD-SWAP']]
 
 for i, symbols in enumerate(symbols_list):
     logging.info(f'start {symbols} (i: {i} out of total {len(symbols_list)})')

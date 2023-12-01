@@ -48,6 +48,7 @@ df_kraken_202310 = pd.read_parquet(f'{base_kraken}/df_kraken_202310.parquet')
 base_okx = 'algo/data/okx'
 df_okx_20231127_1128 = pd.read_parquet(f'{base_okx}/df_okx_20231127_1128.parquet')
 df_okx_20231126_1129 = pd.read_parquet(f'{base_okx}/df_okx_20231126_1129.parquet')
+df_okx_20231126_1201 = pd.read_parquet(f'{base_okx}/df_okx_20231126_1201.parquet')
 
 
 def get_close_between_datetime(df, sample_period_minutes, symbols, start_datetime_str, end_datetime_str, if_2023=True):
@@ -107,6 +108,9 @@ def get_high_corr_symbols_set_of(df, sample_resolution_minutes, set_size, set_nu
     ret = []
     symbols_pool = [s for s in candidate_symbols if s != start_symbol]
     for _ in range(set_num):
+        if len(symbols_pool) < set_size:
+            print(f'ran out of symbol pool')
+            break
         print(f'start_symbol: {start_symbol}')
         symbols = get_high_corr_symbols(df, sample_resolution_minutes, start_symbol, set_size, symbols_pool, high_corr=high_corr)
         ret.append(symbols)
