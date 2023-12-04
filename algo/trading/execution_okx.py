@@ -75,7 +75,7 @@ class TradeExecution:
         '''
         pws = zip(list(price_series), weights)
         value = round(sum(map(lambda pw: pw[0] * pw[1], pws)), 3)
-        logging.info(f'at {epoch_seconds}, for {self.symbols}, execute prices: {price_series.values}, weights: {weights}, value: {value}, direction: {direction}')
+        logging.info(f'at {epoch_seconds}, for {self.symbols}, execute prices: {price_series.values}, weights: {weights}, value: {value}, direction: {direction}, self.direction: {self.direction}')
         record = algo.trading.execution.ExecutionRecord(epoch_seconds, self.symbols, price_series.values, weights, direction)
         self.execution_records.append_record(record)
 
@@ -141,6 +141,12 @@ class TradeExecution:
 
         self.direction = direction
 
+
+    def get_out_of_current_position(self, epoch_seconds, price_series, weights):
+        if self.direction != 1:
+            return
+        logging.info(f'at {epoch_seconds}, get_out_of_current_position prices: {price_series.values}, weights: {weights}')
+        self.execute(epoch_seconds, price_series, weights, -1)
 
     def print(self):
         logging.info(f'[Okx TradeExecution] symbols: {self.symbols}, betsize: {self.target_betsize}, direction: {self.direction}')
