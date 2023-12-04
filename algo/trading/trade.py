@@ -108,6 +108,7 @@ class TradeManager:
         if self.get_if_rebalance():
             last_epoch_seconds = int(self.df_prices.iloc[-1].name.timestamp())
 
+            self.trade_execution.print()
             if self.trade_execution.direction == 1:
                 logging.info(f'[on_price_update] should rebalance at {self.df_prices.iloc[-1].name}({last_epoch_seconds}), exiting the current position')
                 self.trade_execution.get_out_of_current_position(last_epoch_seconds, self.df_prices.iloc[-1], self.status.weight)
