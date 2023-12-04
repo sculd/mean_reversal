@@ -140,3 +140,9 @@ class TradeExecution:
                     logging.info(f"Unsuccessful order request {result}")
 
         self.direction = direction
+
+
+    def print(self):
+        self.execution_records.print()
+        self.closed_execution_records.print()
+        logging.info(f'closed trades pairs: {len(self.closed_execution_records.closed_records)}, cum_pnl: {self.closed_execution_records.get_cum_pnl()}')
