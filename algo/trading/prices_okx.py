@@ -102,7 +102,7 @@ class PriceCache:
         ws.send(json.dumps(params))
 
     def on_ws_close(self, ws, *args):
-        logging.warn(f'websocket closed Connection: {args} for {self.symbols}. Reconnect will be attempted in 1 second.')
+        logging.debug(f'websocket closed Connection: {args} for {self.symbols}. Reconnect will be attempted in 1 second.')
         self.ws_connect()
 
     def on_ws_message(self, ws, msg):
@@ -150,7 +150,7 @@ class PriceCache:
 
 
     def on_ws_error(self, ws, err):
-        logging.error(f'Got an ws error:\n{err}\nClosing the connection.')
+        logging.debug(f'Got an ws error:\n{err}\nClosing the connection.')
         ws.close()
     
     def get_now_epoch_seconds(self):
