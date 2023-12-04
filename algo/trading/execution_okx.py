@@ -57,7 +57,7 @@ class TradeExecution:
             )
             print(result)
 
-    def close_open_positions():
+    def close_open_positions(self):
         account_api = get_account_api()
         trade_api = get_trade_api()
         positions_result = account_api.get_positions()
