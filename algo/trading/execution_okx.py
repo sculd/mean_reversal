@@ -105,7 +105,7 @@ class TradeExecution:
                 if result["code"] == "0":
                     logging.info(f'Successful order request, order_id: {result["data"][0]["ordId"]}')
                 else:
-                    logging.info(f'Unsuccessful order request, error_code = {result["data"][0]["sCode"]}, Error_message = {result["data"][0]["sMsg"]}')
+                    logging.error(f'Unsuccessful order request, error_code = {result["data"][0]["sCode"]}, Error_message = {result["data"][0]["sMsg"]}')
 
             self.closed_execution_records.enter(record)
 
@@ -126,7 +126,7 @@ class TradeExecution:
                         break
                 
                 if position_data is None:
-                    logging.info(f'Can not find the position for {symbol}, something is wrong.')
+                    logging.error(f'Can not find the position for {symbol}, something is wrong.')
                     continue
 
                 result = trade_api.close_positions(
@@ -137,12 +137,13 @@ class TradeExecution:
                 if result["code"] == "0":
                     logging.info("Successful order close request")
                 else:
-                    logging.info(f"Unsuccessful order request {result}")
+                    logging.error(f"Unsuccessful order request {result}")
 
         self.direction = direction
 
 
     def print(self):
+        logging.info(f'[Okx TradeExecution] symbols: {self.symbols}, betsize: {self.target_betsize}, direction: {self.direction}')
         self.execution_records.print()
         self.closed_execution_records.print()
         logging.info(f'closed trades pairs: {len(self.closed_execution_records.closed_records)}, cum_pnl: {self.closed_execution_records.get_cum_pnl()}')
