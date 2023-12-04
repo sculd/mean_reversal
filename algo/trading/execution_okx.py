@@ -35,6 +35,7 @@ class TradeExecution:
         self.execution_records = algo.trading.execution.ExecutionRecords()
         self.closed_execution_records = algo.trading.execution.ClosedExecutionRecords()
         self.init_inst_data()
+        self.close_open_positions()
         self.setup_leverage(symbols, leverage)
 
     def init_inst_data(self):
@@ -55,6 +56,15 @@ class TradeExecution:
                 mgnMode = "isolated"
             )
             print(result)
+
+    def close_open_positions():
+        account_api = get_account_api()
+        trade_api = get_trade_api()
+        positions_result = account_api.get_positions()
+        for position in positions_result['data']:
+            logging.info(f"closing position {position['instId']} {position['posSide']}")
+            close_result = trade_api.close_positions(position['instId'], 'isolated', posSide=position['posSide'], ccy='')
+            logging.info(close_result)
 
     def get_size_factor(self, price_series, weights):
         pws = zip(list(price_series), weights)
