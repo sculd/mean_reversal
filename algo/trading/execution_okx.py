@@ -100,7 +100,7 @@ class TradeExecution:
                 ct_val = float(self.inst_data[symbol]['ctVal'])
                 sz_target = weight * sz_factor / ct_val
                 sz = int(sz_target)
-                logging.info(f'for {symbol}, target sz: {sz_target}, actual sz: {sz}, delta: {sz - sz_target}')
+                logging.info(f'for {symbol}, target sz: {sz_target}, actual sz: {sz}, delta: {sz - sz_target}, ct_val: {ct_val}')
                 
                 result = trade_api.place_order(
                     instId=symbol, tdMode="isolated", 
