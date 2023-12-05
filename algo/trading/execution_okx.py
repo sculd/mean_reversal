@@ -1,4 +1,4 @@
-import logging, os
+import logging, os, requests
 import algo.trading.execution
 
 
@@ -26,6 +26,22 @@ def get_account_api():
         _account_api = Account.AccountAPI(_api_key, _secret_key, _passphrase, False, _flag)
     return _account_api
 
+def get_usdt_symbol(symbol):
+    symbol_usdt = symbol
+    if symbol_usdt.endswith('USD'):
+        symbol_usdt = symbol.replace('USD', 'USDT')
+    return symbol_usdt
+
+def get_current_price(symbol):
+    candle_hist_url_format = 'https://www.okx.com/api/v5/market/history-mark-price-candles?bar=1m&instId={symbol}&limit={limit}'
+
+    symbol_usdt = get_usdt_symbol(symbol)
+    url = candle_hist_url_format.format(symbol=symbol_usdt, limit=1)
+    r = requests.get(url)
+    r_js = r.json()
+    price = float(r_js['data'][0][4])
+    return price
+
 
 class TradeExecution:
     def __init__(self, symbols, target_betsize, leverage):
@@ -37,6 +53,7 @@ class TradeExecution:
         self.init_inst_data()
         self.close_open_positions()
         self.setup_leverage(symbols, leverage)
+        self.ensure_collateral_coins()
 
     def init_inst_data(self):
         public_data_api = PublicData.PublicAPI(flag=_flag)
@@ -44,15 +61,19 @@ class TradeExecution:
             instType="SWAP"
         )
         self.inst_data = {instData['instId']: instData for instData in get_instruments_result['data']}
+        get_instruments_result = public_data_api.get_instruments(
+            instType="SPOT"
+        )
+        self.inst_data_spot = {instData['instId']: instData for instData in get_instruments_result['data']}
 
     def setup_leverage(self, symbols, leverage):
         account_api = get_account_api()
-        leverage = int(leverage)
+        self.leverage = int(leverage)
         for symbol in symbols:
             logging.info(f'setting up the leverage for {symbol} as {leverage}')
             result = account_api.set_leverage(
                 instId = symbol,
-                lever = str(leverage),
+                lever = str(self.leverage),
                 mgnMode = "isolated"
             )
             print(result)
@@ -65,6 +86,72 @@ class TradeExecution:
             logging.info(f"closing position {position['instId']} {position['posSide']}")
             close_result = trade_api.close_positions(position['instId'], 'isolated', posSide=position['posSide'], ccy='')
             logging.info(close_result)
+
+    def ensure_collateral_coins(self):
+        for symbol in self.symbols:
+            self.ensure_collateral_coin(symbol)
+
+    def ensure_collateral_coin(self, symbol):
+        account_api = get_account_api()
+        account_balance_result = account_api.get_account_balance()
+
+        target_holding_usd = (self.target_betsize + 20) / self.leverage
+
+        coin = symbol.split('-USD')[0]
+        balance_detail = None
+        for d in account_balance_result['data'][0]['details']:
+            if d['ccy'] == coin:
+                balance_detail = d
+                break
+
+        current_holding_usd = 0
+        current_holding = 0
+        if balance_detail is not None:
+            current_holding_usd = float(balance_detail['eqUsd'])
+            current_holding = float(balance_detail['availBal'])
+        
+        collateral_symbol = symbol.replace('-SWAP', '')
+        collateral_symbol = get_usdt_symbol(collateral_symbol)
+        current_price = get_current_price(collateral_symbol)
+        target_holding = target_holding_usd / current_price
+
+        inst_data_spot = self.inst_data_spot[collateral_symbol]
+        lot_sz = float(inst_data_spot['lotSz'])
+
+        holding_delta_usd = target_holding_usd - current_holding_usd
+        holding_delta_usd = int(holding_delta_usd)
+        holding_delta = target_holding - current_holding
+
+        logging.info(f'[ensure_collatral_coin] securing {coin} (trade {collateral_symbol}) (current_price: {current_price}) for {symbol}, target_holding_usd: {target_holding_usd} (current_holding_usd: {current_holding_usd}), target_holding: {target_holding} (current_holding: {current_holding}), holding_delta_usd: {holding_delta_usd}, lot_sz: {lot_sz}')
+        
+        if abs(holding_delta_usd) < 2:
+            logging.info(f'collateral {collateral_symbol} is already secured')
+            return
+        
+        trade_api = get_trade_api()
+        if holding_delta_usd > 0:
+            result = trade_api.place_order(
+                instId=collateral_symbol, tdMode="cash", 
+                side="buy",
+                posSide="net",
+                ordType="market",
+                sz=str(holding_delta_usd),
+            )
+        else:
+            result = trade_api.place_order(
+                instId=collateral_symbol, tdMode="cash", 
+                side="sell",
+                posSide="net",
+                ordType="market",
+                sz=str(abs(holding_delta)),
+            )
+
+        logging.info(f'place order result:\n{result}')
+
+        if result["code"] == "0":
+            logging.info(f'Successful order request, order_id: {result["data"][0]["ordId"]}')
+        else:
+            logging.error(f'Unsuccessful order request, error_code = {result["data"][0]["sCode"]}, Error_message = {result["data"][0]["sMsg"]}')
 
     def get_size_factor(self, price_series, weights):
         pws = zip(list(price_series), weights)
