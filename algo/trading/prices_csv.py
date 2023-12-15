@@ -24,7 +24,7 @@ class BacktestCsvPriceCache:
         self.history_read_i = 0
         self.latest_now_epoch_seconds = 0
         logging.info(f'csv price cache loaded {csv_filename}')
-        
+
 
     def get_now_epoch_seconds(self, anchored):
         if self.history_read_i >= len(self.price_history_epoch_seconds):

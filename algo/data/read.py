@@ -49,6 +49,9 @@ base_okx = 'algo/data/okx'
 df_okx_20231127_1128 = pd.read_parquet(f'{base_okx}/df_okx_20231127_1128.parquet')
 df_okx_20231126_1129 = pd.read_parquet(f'{base_okx}/df_okx_20231126_1129.parquet')
 df_okx_20231126_1201 = pd.read_parquet(f'{base_okx}/df_okx_20231126_1201.parquet')
+df_okx_20231125_1204 = pd.read_parquet(f'{base_okx}/df_okx_20231125_1204.parquet')
+df_okx_20231205_1212 = pd.read_parquet(f'{base_okx}/df_okx_20231205_1212.parquet')
+df_okx_20231125_1212 = pd.read_parquet(f'{base_okx}/df_okx_20231125_1212.parquet')
 
 
 def get_close_between_datetime(df, sample_period_minutes, symbols, start_datetime_str, end_datetime_str, if_2023=True):
